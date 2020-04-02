@@ -79,7 +79,7 @@ class Client(object):
                             fatal errors are logged even when
                             ``engineio_logger`` is ``False``.
     """
-    def __init__(self, reconnection=True, reconnection_attempts=0,
+    def __init__(self, cb=None, reconnection=True, reconnection_attempts=0,
                  reconnection_delay=1, reconnection_delay_max=5,
                  randomization_factor=0.5, logger=False, binary=False,
                  json=None, **kwargs):
@@ -88,6 +88,7 @@ class Client(object):
                 threading.current_thread() == threading.main_thread():
             original_signal_handler = signal.signal(signal.SIGINT,
                                                     signal_handler)
+        self.cb = cb
         self.reconnection = reconnection
         self.reconnection_attempts = reconnection_attempts
         self.reconnection_delay = reconnection_delay
@@ -595,6 +596,8 @@ class Client(object):
 
     def _handle_eio_message(self, data):
         """Dispatch Engine.IO messages."""
+        if self.cb: 
+            self.cb(data)
         if self._binary_packet:
             pkt = self._binary_packet
             if pkt.add_attachment(data):
